@@ -191,7 +191,7 @@ var Register = React.createClass({
     console.log(this.state);
     if(this.state.username && this.state.password) {
       if(this.state.password === this.state.confirmPass) {
-        fetch('/register', {
+        fetch('https://react-the-game.herokuapp.com/register', {
           method: 'POST',
           headers: {
             "Content-Type": "application/json"
