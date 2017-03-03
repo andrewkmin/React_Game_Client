@@ -101,7 +101,7 @@ var Login = React.createClass({
   },
   login() {
     if(this.state.username && this.state.password) {
-      fetch('/login', {
+      fetch('https://react-the-game.herokuapp.com/login', {
         method: 'POST',
         headers: {
           "Content-Type": "application/json"
@@ -115,13 +115,13 @@ var Login = React.createClass({
       .then((responseJson) => {
         if(responseJson.success) {
           AsyncStorage.setItem('user', JSON.stringify ({
-            username: this.state.username,
-            password: this.state.password
+            username: responseJson.user.username,
+            password: responseJson.user.password
           }))
-          this.props.navigator.resetTo({
+          this.props.navigator.push({
             component: Main,
-            title: 'BOP IT!',
-            tintColor: '#fff',
+            title: 'REACT',
+            tintColor: 'transparent',
             titleTextColor: '#fff',
             barTintColor: '#3498db'
           })
@@ -198,21 +198,20 @@ var Register = React.createClass({
           },
           body: JSON.stringify({
             username: this.state.username,
-            password: this.state.password,
-            confirmPass: this.state.confirmPass
+            password: this.state.password
           })
         })
         .then((response) => response.json())
         .then((responseJson) => {
           if(responseJson.success) {
             AsyncStorage.setItem('user', JSON.stringify({
-              username: this.state.username,
-              password: this.state.password
+              username: responseJson.user.username,
+              password: responseJson.user.password
             }))
-            this.props.navigator.resetTo({
+            this.props.navigator.push({
               component: Main,
-              title: 'BOP IT!',
-              tintColor: '#fff',
+              title: 'BREACT!',
+              tintColor: 'transparent',
               titleTextColor: '#fff',
               barTintColor: '#3498db'
             })
@@ -284,24 +283,19 @@ var Main = React.createClass({
     }
   },
   componentDidMount() {
-    this.setState({
-      leaders: [
-        {username: 'moose', highScore: 1000},
-        {username: 'darwish', highScore: 900},
-        {username: 'abhi', highScore: 800},
-        {username: 'seb', highScore: 700},
-        {username: 'ricky', highScore: 600},
-        {username: 'prath', highScore: 500},
-        {username: 'andrew', highScore: 400},
-        {username: 'syed', highScore: 300},
-        {username: 'zinger', highScore: 200},
-        {username: 'lando', highScore: 100}
-      ]
+    fetch('https://react-the-game.herokuapp.com/leaderboard', {
+      method: 'GET',
+    })
+    .then((response) => response.json())
+    .then((responseJson) => this.setState({
+      leaders: responseJson.highScores,
+      username: AsyncStorage.getItem('user').username,
+      password: AsyncStorage.getItem('user').password
     })
   },
   startGame() {
     this.props.navigator.push({
-      component: Tap,
+      component: gamesArray[Math.floor(Math.random() * gamesArray.length)],
       title: 'Tap!',
       navigationBarHidden: true
     })
@@ -404,6 +398,18 @@ var Tap = React.createClass({
   }
 })
 
+var Shake = React.createClass({
+
+})
+
+var Swipe = React.createClass({
+
+})
+
+var Tilt = React.createClass({
+
+})
+
 const styles = StyleSheet.create({
   button: {
     alignSelf: 'stretch',
@@ -426,5 +432,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#3498db'
   }
 });
+
+const gamesArray = [
+  Tap,
+  Shake,
+  Swipe,
+  Tilt
+]
 
 AppRegistry.registerComponent('React_Game', () => REACT);
