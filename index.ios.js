@@ -17,6 +17,8 @@ import {
   StatusBar
 } from 'react-native';
 
+import RNShakeEventIOS from 'react-native-shake-event-ios';
+
 var REACT = React.createClass ({
   render() {
     return (
@@ -99,6 +101,48 @@ var Login = React.createClass({
       password: ''
     }
   },
+  componentDidMount() {
+    AsyncStorage.getItem('user')
+    .then(result => {
+      var parsedResult = JSON.parse(result);
+      var parsedUsername = parsedResult.username;
+      var parsedPassword = parsedResult.password;
+      if (parsedUsername && parsedPassword) {
+        return fetch('https://react-the-game.herokuapp.com/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            username: parsedUsername,
+            password: parsedPassword
+          })
+        })
+        .then(response => response.json())
+        .then((responseJson) => {
+          if(responseJson.success) {
+            this.props.navigator.push({
+              component: Main,
+              title: 'REACT',
+              tintColor: '#fff',
+              titleTextColor: '#fff',
+              barTintColor: '#3498db',
+              rightButtonTitle: 'Logout',
+              onRightButtonPress: () => {
+                AsyncStorage.setItem('user', JSON.stringify({
+                  username: '',
+                  password: ''
+                }));
+                this.props.navigator.popToTop(0);
+              }
+            })
+          } // otherwise do nothing
+        });
+      }
+      // Don't really need an else clause, we don't do anything in this case.
+    })
+    .catch(err => {})
+  },
   login() {
     if(this.state.username && this.state.password) {
       fetch('https://react-the-game.herokuapp.com/login', {
@@ -121,9 +165,17 @@ var Login = React.createClass({
           this.props.navigator.push({
             component: Main,
             title: 'REACT',
-            tintColor: 'transparent',
+            tintColor: '#fff',
             titleTextColor: '#fff',
-            barTintColor: '#3498db'
+            barTintColor: '#3498db',
+            rightButtonTitle: 'Logout',
+            onRightButtonPress: () => {
+              AsyncStorage.setItem('user', JSON.stringify({
+                username: '',
+                password: ''
+              }));
+              this.props.navigator.popToTop(0);
+            }
           })
         } else {
           this.setState({
@@ -210,10 +262,18 @@ var Register = React.createClass({
             }))
             this.props.navigator.push({
               component: Main,
-              title: 'BREACT!',
-              tintColor: 'transparent',
+              title: 'REACT!',
+              tintColor: '#fff',
               titleTextColor: '#fff',
-              barTintColor: '#3498db'
+              barTintColor: '#3498db',
+              rightButtonTitle: 'Logout',
+              onRightButtonPress: () => {
+                AsyncStorage.setItem('user', JSON.stringify({
+                  username: '',
+                  password: ''
+                }));
+                this.props.navigator.popToTop(0);
+              }
             })
           } else {
             this.setState({
@@ -284,18 +344,19 @@ var Main = React.createClass({
   },
   componentDidMount() {
     fetch('https://react-the-game.herokuapp.com/leaderboard', {
-      method: 'GET',
+      method: 'GET'
     })
     .then((response) => response.json())
     .then((responseJson) => this.setState({
       leaders: responseJson.highScores,
       username: AsyncStorage.getItem('user').username,
       password: AsyncStorage.getItem('user').password
-    })
+    }))
   },
   startGame() {
     this.props.navigator.push({
-      component: gamesArray[Math.floor(Math.random() * gamesArray.length)],
+      // component: gamesArray[Math.floor(Math.random() * gamesArray.length)],
+      component: gamesArray[1],
       title: 'Tap!',
       navigationBarHidden: true
     })
@@ -337,12 +398,9 @@ var Main = React.createClass({
 var Tap = React.createClass({
   getInitialState() {
     return {
-      user: {
-        username: 'zinger'
-      },
+      user: {},
       color: '',
-      score: 0,
-      high: 578
+      score: 0
     }
   },
   colorPress(color) {
@@ -351,6 +409,14 @@ var Tap = React.createClass({
       score: this.state.score + 5
     })
   },
+  componentDidMount(){
+    this.setState({
+      user: AsyncStorage.getItem('user')
+    })
+  },
+  backDatAzzUp(){
+    this.props.navigator.pop();
+  },
   render() {
     return (
       <View style={{flex: 1}}>
@@ -358,13 +424,17 @@ var Tap = React.createClass({
           hidden={true}
         />
         <View style={{flex: 0.2, justifyContent: 'space-between', flexDirection: 'row'}}>
-          <Text style={{alignSelf: 'center', paddingLeft: 10, paddingRight: 10, fontSize: 20, flex: 1, textAlign: 'left'}}>
+
+          <TouchableOpacity onPress={this.backDatAzzUp} style={{alignSelf: 'center', paddingLeft: 10, paddingRight: 10, fontSize: 20, flex: 1, textAlign: 'left'}}>
             { (this.state.user.username.length > 20) ? (this.state.user.username.substring(0, 18-3) + '...') : this.state.user.username }
-          </Text>
+          </TouchableOpacity>
+
           <Text style={{alignSelf: 'center', paddingLeft: 10, paddingRight: 10, fontSize: 20, flex: 1, textAlign: 'right'}}>
-            High Score: {this.state.high}
+            High Score: {this.state.user.highScore}
           </Text>
+
         </View>
+
         <View style={{flex: 0.4, justifyContent: 'center'}}>
           <Text style={{textAlign: 'center', fontSize: 70, fontWeight: 'bold'}}>
             {this.state.score}
@@ -375,6 +445,7 @@ var Tap = React.createClass({
             TAP IT!
           </Text>
         </View>
+
         <View style={{flex: 2}}>
           <View style={{flex: 1, flexDirection: 'row'}}>
             <TouchableOpacity style={{flex: 1, borderRadius: 5, backgroundColor: '#e74c3c', marginTop: 8, marginLeft: 8, marginRight: 3, marginBottom: 3}}
@@ -384,6 +455,7 @@ var Tap = React.createClass({
             onPress={this.colorPress.bind(this, 'blue')}>
             </TouchableOpacity>
           </View>
+
           <View style={{flex: 1, flexDirection: 'row'}}>
             <TouchableOpacity style={{flex: 1, borderRadius: 5, backgroundColor: '#f1c40f', marginTop: 3, marginLeft: 8, marginRight: 3, marginBottom: 8}}
             onPress={this.colorPress.bind(this, 'yellow')}>
@@ -392,22 +464,68 @@ var Tap = React.createClass({
             onPress={this.colorPress.bind(this, 'green')}>
             </TouchableOpacity>
           </View>
+
         </View>
       </View>
     )
   }
 })
 
-var Shake = React.createClass({
 
-})
+/////// SHAKE
+var Shake = React.createClass({
+  getInitialState() {
+    return {
+        didShake: false
+    }
+  },
+  componentDidMount() {
+    RNShakeEventIOS.addEventListener('shake', () => {
+      this._handleShake();
+    });
+  },
+
+  componentWillUnmount() {
+    RNShakeEventIOS.removeEventListener('shake');
+  },
+
+  _handleShake() {
+    // let self = this;
+    this.setState({didShake: true});
+    console.log('shook', this.state.didShake);
+    setTimeout(() => {
+      this.setState({didShake: false});
+    }, 10000);
+  },
+
+  render() {
+    let didShake = this.state.didShake;
+    return (
+      <View style={{justifyContent: 'center', alignItems: 'center'}}>
+      <Text style={{fontSize: 400}}>SHAKE SHAKE SHAKE</Text>
+      </View>
+    );
+  }
+});
 
 var Swipe = React.createClass({
-
+  render() {
+    return (
+      <View style={{justifyContent: 'center', alignItems: 'center'}}>
+      <Text style={{fontSize: 400}}>2222</Text>
+      </View>
+    );
+  }
 })
 
 var Tilt = React.createClass({
-
+  render() {
+    return (
+      <View style={{justifyContent: 'center', alignItems: 'center'}}>
+      <Text style={{fontSize: 400}}>1111</Text>
+      </View>
+    );
+  }
 })
 
 const styles = StyleSheet.create({
