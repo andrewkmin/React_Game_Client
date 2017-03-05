@@ -136,7 +136,7 @@ var Login = React.createClass({
         .then((responseJson) => {
           if(responseJson.success) {
             // alert(Object.keys(this.props.navigator.navigationContext))
-            alert(this.props.navigator.navigationContext._currentRoute.component)
+            // alert(this.props.navigator.navigationContext._currentRoute.component)
             self.props.navigator.push({
               component: Main,
               title: 'REACT',
