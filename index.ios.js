@@ -135,6 +135,8 @@ var Login = React.createClass({
         .then(response => response.json())
         .then((responseJson) => {
           if(responseJson.success) {
+            // alert(Object.keys(this.props.navigator.navigationContext))
+            // alert(this.props.navigator.navigationContext._currentRoute.component)
             self.props.navigator.push({
               component: Main,
               title: 'REACT',
@@ -142,7 +144,6 @@ var Login = React.createClass({
               titleTextColor: '#fff',
               barTintColor: '#3498db'
             })
-            self.props.navigator.pop()
           } // otherwise do nothing
         });
       }
@@ -170,6 +171,9 @@ var Login = React.createClass({
             username: responseJson.user.username,
             password: responseJson.user.password
           }))
+          // alert(Object.keys(this.props.navigator.navigationContext))
+          alert(this.props.navigator.navigationContext._currentRoute.component)
+
           this.props.navigator.push({
             component: Main,
             title: 'REACT',
